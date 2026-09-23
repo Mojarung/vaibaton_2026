@@ -370,7 +370,9 @@ async function doMask() {
     fillAnswer(data.masked);
     $("btnUnmask").disabled = !data.session_id;
     if (!data.session_id) {
-      $("restored").textContent = "Для этой системы демаскирование выключено политикой.";
+      $("restored").textContent = data.entities.length
+        ? "Для этой системы демаскирование выключено политикой."
+        : "ПДн не найдены, восстанавливать нечего.";
     } else {
       $("restored").textContent = "";
     }
@@ -429,7 +431,7 @@ async function doLlm() {
 async function doProcess() {
   const text = $("input").value;
   if (!text) { setStatus("Введите текст", "err"); return; }
-  const payloadId = "demo-" + crypto.randomUUID();
+  const payloadId = "demo-" + Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, "0")).join("");
   const logEl = $("processLogBody");
   const lines = [];
   try {
