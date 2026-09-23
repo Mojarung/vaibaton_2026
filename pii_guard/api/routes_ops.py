@@ -71,7 +71,7 @@ async def stats(request: Request) -> dict:
             if keys:
                 values = await ctx.vault.redis.mget(keys)
                 snapshots.extend(orjson.loads(v) for v in values if v)
-        except redis.exceptions.RedisError, OSError, orjson.JSONDecodeError:
+        except (redis.exceptions.RedisError, OSError, orjson.JSONDecodeError):
             snapshots = []
     if not snapshots:
         snapshots = [ctx.live.snapshot()]

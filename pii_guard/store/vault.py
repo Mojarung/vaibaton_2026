@@ -80,7 +80,7 @@ class Vault:
         try:
             await client.set(addr, base64.urlsafe_b64encode(candidate).decode(), nx=True)
             stored = await client.get(addr)
-        except redis.exceptions.RedisError, OSError:
+        except (redis.exceptions.RedisError, OSError):
             stored = None
         if stored:
             key = base64.urlsafe_b64decode(stored)
@@ -109,7 +109,7 @@ class Vault:
             ct = blob[12:]
             data = self._aes.decrypt(nonce, ct, address.encode("utf-8"))
             return orjson.loads(data)
-        except InvalidTag, ValueError:
+        except (InvalidTag, ValueError):
             return None
 
     async def _redis_call(self, operation: str, call):
@@ -174,7 +174,7 @@ class Vault:
             return True
         try:
             return bool(await self.redis.ping())
-        except redis.exceptions.RedisError, OSError:
+        except (redis.exceptions.RedisError, OSError):
             return False
 
     async def close(self) -> None:

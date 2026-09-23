@@ -182,8 +182,8 @@ def _apply_rule(
 
 def _rule_validators(rule: CompiledRule, options: DetectionOptions) -> list | None:
     """Валидаторы правила с учётом политики bare_date; None — правило не применять."""
-    apply, skip_birth = _bare_date_allowed(rule, options)
-    if not apply:
+    enabled, skip_birth = _bare_date_allowed(rule, options)
+    if not enabled:
         return None
     validators = rule.validators
     if skip_birth:

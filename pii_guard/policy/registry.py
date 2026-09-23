@@ -56,15 +56,15 @@ class SystemRegistry:
         """Читает YAML и собирает все системы; подмена целиком после успеха."""
         with open(self.path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
-        file = SystemsFile.model_validate(data)
-        defaults = SystemPolicy.model_validate(file.defaults or {})
+        systems_file = SystemsFile.model_validate(data)
+        defaults = SystemPolicy.model_validate(systems_file.defaults or {})
         systems: dict[str, ResolvedSystem] = {}
-        for sid, raw in file.systems.items():
+        for sid, raw in systems_file.systems.items():
             systems[sid] = self._build(sid, defaults, raw)
-        if file.default_system not in systems:
-            raise ValueError(f"Система по умолчанию {file.default_system!r} не описана")
+        if systems_file.default_system not in systems:
+            raise ValueError(f"Система по умолчанию {systems_file.default_system!r} не описана")
         self._systems = systems
-        self._default_system = file.default_system
+        self._default_system = systems_file.default_system
         self.version += 1
 
     def _build(self, sid: str, defaults: SystemPolicy, raw: dict) -> ResolvedSystem:

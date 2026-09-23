@@ -190,13 +190,13 @@ def load_rules(rules_dir: str | Path, registry: TypeRegistry) -> list[CompiledRu
             continue
         with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
-        file = RuleFile.model_validate(data)
-        if not file.enabled:
+        rule_file = RuleFile.model_validate(data)
+        if not rule_file.enabled:
             continue
-        registry.register(file.type, file.label_ru, file.label_en)
-        for spec in file.rules:
+        registry.register(rule_file.type, rule_file.label_ru, rule_file.label_en)
+        for spec in rule_file.rules:
             if spec.id in seen_ids:
                 raise ValueError(f"Дублирующиеся id правил: {', '.join(sorted(seen_ids))}")
-            seen_ids[spec.id] = file.type
-            compiled.append(compile_rule(spec, file.type, macros))
+            seen_ids[spec.id] = rule_file.type
+            compiled.append(compile_rule(spec, rule_file.type, macros))
     return compiled
