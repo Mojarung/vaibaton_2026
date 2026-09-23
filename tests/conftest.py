@@ -27,14 +27,14 @@ def detector():
     return Detector(CONFIG)
 
 
-@pytest.fixture()
+@pytest.fixture
 def config_copy(tmp_path):
     dest = tmp_path / "config"
     shutil.copytree(CONFIG, dest)
     return dest
 
 
-@pytest.fixture()
+@pytest.fixture
 def client(config_copy, monkeypatch):
     for name, value in KEYS.items():
         monkeypatch.setenv(name, value)

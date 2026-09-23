@@ -110,7 +110,7 @@ def merge_adjacent(text: str, spans: list[Span]) -> list[Span]:
         prev = result[-1]
         if prev.type == span.type and prev.subtype == span.subtype:
             gap = text[prev.end : span.start]
-            if 0 <= len(gap) <= 2 and all(c in " \t" for c in gap):
+            if len(gap) <= 2 and all(c in " \t" for c in gap):
                 result[-1] = Span(
                     start=prev.start,
                     end=span.end,

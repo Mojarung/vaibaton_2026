@@ -349,7 +349,7 @@ class PersonDetector:
         if f0[0] >= 0.5 and f1[2]:
             return self._match_name_patronymic(text, group, options)
         triggered = self._triggered(text, w0[0].start)
-        strong = (f0[0] == 1.0 and f1[1] >= 0.8) or (f0[1] >= 0.8 and f1[0] == 1.0)
+        strong = (f0[0] >= 1.0 and f1[1] >= 0.8) or (f0[1] >= 0.8 and f1[0] >= 1.0)
         ok = (f0[3] and f1[3]) or triggered or strong
         weak = triggered and f0[1] >= 0.5 and f1[0] >= 0.8
         res = self._match_surname_name(text, group, options, ok, weak, f0, f1)

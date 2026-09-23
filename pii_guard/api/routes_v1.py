@@ -52,7 +52,7 @@ class UnmaskResponse(BaseModel):
     elapsed_ms: float
 
 
-@router.post("/mask", response_model=MaskResponse)
+@router.post("/mask")
 async def mask(request: Request, body: MaskRequest) -> MaskResponse:
     system = current_system(request)
     outcome = await request.app.state.ctx.service.mask_session(system, body.text)
@@ -84,7 +84,7 @@ async def mask(request: Request, body: MaskRequest) -> MaskResponse:
     )
 
 
-@router.post("/unmask", response_model=UnmaskResponse)
+@router.post("/unmask")
 async def unmask(request: Request, body: UnmaskRequest) -> UnmaskResponse:
     system = current_system(request)
     if not system.policy.unmask:

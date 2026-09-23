@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import cProfile
 import io
 import pstats
@@ -44,18 +45,19 @@ async def call_process(app, payload: str, payload_id: str) -> dict:
     }
     received = False
 
-    async def receive():
+    def receive():
         nonlocal received
         if not received:
             received = True
-            return {"type": "http.request", "body": body, "more_body": False}
-        return {"type": "http.disconnect"}
+            return asyncio.sleep(0, {"type": "http.request", "body": body, "more_body": False})
+        return asyncio.sleep(0, {"type": "http.disconnect"})
 
     chunks: list[bytes] = []
 
-    async def send(message):
+    def send(message):
         if message["type"] == "http.response.body":
             chunks.append(message.get("body", b""))
+        return asyncio.sleep(0)
 
     await app(scope, receive, send)
     return orjson.loads(b"".join(chunks))

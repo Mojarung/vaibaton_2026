@@ -26,7 +26,7 @@ class Example:
     variant: str
     text: str
     pii: list[GoldSpan]
-    traps: list[tuple[int, int]] = None  # type: ignore[assignment]
+    traps: list[tuple[int, int]] | None = None
 
 
 def locate(text: str, value: str, occurrence: int = 1) -> tuple[int, int]:

@@ -13,9 +13,9 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra 
 FROM python:3.14.7-slim-trixie
 RUN useradd --create-home --uid 10001 app
 WORKDIR /app
-COPY --from=build --chown=app:app /app /app
+COPY --from=build /app /app
 COPY --chown=app:app config ./config
-COPY --chown=app:app docker/entrypoint.sh /entrypoint.sh
+COPY docker/entrypoint.sh /entrypoint.sh
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1 PROMETHEUS_MULTIPROC_DIR=/tmp/prom WORKERS=4 PORT=8080
 USER app
 EXPOSE 8080

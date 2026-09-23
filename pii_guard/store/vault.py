@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 import base64
-import binascii
 import hashlib
 import hmac
 import secrets
@@ -28,6 +27,8 @@ _metrics = Metrics()
 
 MEMORY_LIMIT = 200_000
 DEGRADE_INTERVAL = 5.0
+REDIS_ATTEMPTS = 2
+_FAILED = object()
 
 
 class Vault:
@@ -64,7 +65,7 @@ class Vault:
         if vault_key:
             try:
                 key = base64.urlsafe_b64decode(vault_key)
-            except (binascii.Error, ValueError) as exc:
+            except ValueError as exc:
                 raise ValueError(
                     "VAULT_KEY должен кодировать ровно 32 байта (urlsafe base64)"
                 ) from exc
@@ -108,16 +109,24 @@ class Vault:
             ct = blob[12:]
             data = self._aes.decrypt(nonce, ct, address.encode("utf-8"))
             return orjson.loads(data)
-        except InvalidTag, ValueError, orjson.JSONDecodeError:
+        except InvalidTag, ValueError:
             return None
+
+    async def _redis_call(self, operation: str, call):
+        for attempt in range(REDIS_ATTEMPTS):
+            try:
+                return await call()
+            except (redis.exceptions.RedisError, OSError) as e:
+                if attempt == REDIS_ATTEMPTS - 1:
+                    self._degrade(operation, e)
+        return _FAILED
 
     async def get(self, address: str) -> dict | None:
         blob: bytes | None = None
         if self.redis is not None:
-            try:
-                blob = await self.redis.get(address)
-            except (redis.exceptions.RedisError, OSError) as e:
-                self._degrade("get", e)
+            result = await self._redis_call("get", lambda: self.redis.get(address))
+            if result is not _FAILED:
+                blob = result
         if blob is None and self._memory:
             entry = self._memory.get(address)
             if entry is not None:
@@ -133,14 +142,11 @@ class Vault:
     async def put(self, address: str, value: dict, ttl: int, only_new: bool = False) -> bool:
         blob = self._encrypt(value, address)
         if self.redis is not None:
-            try:
-                ok = await self.redis.set(address, blob, ex=ttl, nx=only_new)
-            except (redis.exceptions.RedisError, OSError) as e:
-                self._degrade("put", e)
-            else:
-                if ok:
-                    return True
-                return not only_new
+            ok = await self._redis_call(
+                "put", lambda: self.redis.set(address, blob, ex=ttl, nx=only_new)
+            )
+            if ok is not _FAILED:
+                return bool(ok) or not only_new
         return self._memory_put(address, blob, ttl, only_new)
 
     def _memory_put(self, address: str, blob: bytes, ttl: int, only_new: bool) -> bool:

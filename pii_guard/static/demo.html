@@ -117,7 +117,7 @@ button.primary:hover:not(:disabled) { background: var(--accent-hover); }
 .out {
   font-family: var(--mono);
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: anywhere;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -177,7 +177,7 @@ summary { cursor: pointer; font-weight: 600; }
   <div class="grid">
 
     <div class="panel">
-      <h2>1. Исходный текст</h2>
+      <h2><label for="input">1. Исходный текст</label></h2>
       <textarea id="input" rows="8" spellcheck="false"></textarea>
       <label for="example">Пример</label>
       <select id="example"></select>
@@ -207,6 +207,7 @@ summary { cursor: pointer; font-weight: 600; }
     <div class="panel">
       <h2>3. Восстановление</h2>
       <p class="hint">Ответ можно отредактировать так, как его переписала бы LLM. Плейсхолдеры можно переставлять и повторять.</p>
+      <label for="answer">Ответ модели</label>
       <textarea id="answer" rows="5"></textarea>
       <div class="row">
         <button id="btnUnmask" disabled>Демаскировать</button>
@@ -235,7 +236,7 @@ summary { cursor: pointer; font-weight: 600; }
   </div>
 </main>
 
-<script>
+<script type="module">
 "use strict";
 
 const $ = (id) => document.getElementById(id);
@@ -509,8 +510,8 @@ $("btnLlm").addEventListener("click", doLlm);
 $("btnProcess").addEventListener("click", doProcess);
 
 initExamples();
-refreshStats();
 setInterval(refreshStats, 2000);
+await refreshStats();
 </script>
 </body>
 </html>

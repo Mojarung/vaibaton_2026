@@ -3,7 +3,7 @@ import { check } from "k6";
 import { SharedArray } from "k6/data";
 import { Counter } from "k6/metrics";
 
-const TARGET = __ENV.TARGET || "http://api:8080";
+const TARGET = __ENV.TARGET;
 const RATE = Number(__ENV.RATE || 1000);
 const DURATION = __ENV.DURATION || "60s";
 const RAMP = __ENV.RAMP || "20s";
@@ -46,17 +46,33 @@ export const options = {
   summaryTrendStats: ["avg", "min", "med", "p(90)", "p(95)", "p(99)", "max"],
 };
 
+let seed = 0;
+
+function nextUnit() {
+  if (seed === 0) seed = (__VU * 2654435761) >>> 0 || 1;
+  seed ^= seed << 13;
+  seed ^= seed >>> 17;
+  seed ^= seed << 5;
+  seed >>>= 0;
+  return seed / 4294967296;
+}
+
+function pieceCount(r) {
+  if (r < 0.85) return 1;
+  if (r < 0.98) return 8;
+  return 60;
+}
+
 function pickText() {
-  const r = Math.random();
-  const n = r < 0.85 ? 1 : r < 0.98 ? 8 : 60;
+  const n = pieceCount(nextUnit());
   const parts = [];
-  for (let i = 0; i < n; i++) parts.push(texts[Math.floor(Math.random() * texts.length)]);
+  for (let i = 0; i < n; i++) parts.push(texts[Math.floor(nextUnit() * texts.length)]);
   return parts.join("\n");
 }
 
 const params = { headers: { "Content-Type": "application/json" }, timeout: "10s" };
 
-export default function () {
+export default function maskRoundtrip() {
   const text = pickText();
   const id = `k6-${__VU}-${__ITER}-${Date.now()}`;
   const masked = http.post(`${TARGET}/process`, JSON.stringify({ payload: text, payload_id: id }), params);

@@ -145,7 +145,7 @@ def _synthesize_bank_card(original: str, rng: random.Random) -> str:
 
 def _synthesize_phone(original: str, rng: random.Random) -> str:
     d = _digits(original)
-    keep = 2 if len(d) == 11 else (1 if len(d) == 10 else 0)
+    keep = {11: 2, 10: 1}.get(len(d), 0)
     out = []
     digit_idx = 0
     for ch in original:

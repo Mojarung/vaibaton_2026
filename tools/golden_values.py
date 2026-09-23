@@ -8,6 +8,10 @@ import pymorphy3
 
 _MORPH = pymorphy3.MorphAnalyzer()
 
+SEP_STREET = ", ул. "
+SEP_HOUSE = ", д. "
+SEP_FLAT = ", кв. "
+
 MALE_NAMES = [
     "Иван",
     "Пётр",
@@ -888,11 +892,11 @@ def address(rng: random.Random) -> list[tuple[str, list]]:
                 (index, "ADDRESS"),
                 ", г. ",
                 (city, "ADDRESS"),
-                ", ул. ",
+                SEP_STREET,
                 (street, "ADDRESS"),
-                ", д. ",
+                SEP_HOUSE,
                 (house, "ADDRESS"),
-                ", кв. ",
+                SEP_FLAT,
                 (apt, "ADDRESS"),
             ],
         ),
@@ -905,11 +909,11 @@ def address(rng: random.Random) -> list[tuple[str, list]]:
                 street_type,
                 " ",
                 (street, "ADDRESS"),
-                ", д. ",
+                SEP_HOUSE,
                 (house, "ADDRESS"),
                 ", корп. ",
                 (corp, "ADDRESS"),
-                ", кв. ",
+                SEP_FLAT,
                 (apt, "ADDRESS"),
             ],
         ),
@@ -921,9 +925,9 @@ def address(rng: random.Random) -> list[tuple[str, list]]:
                 (district, "ADDRESS"),
                 " р-н, д. ",
                 (village, "ADDRESS"),
-                ", ул. ",
+                SEP_STREET,
                 (street, "ADDRESS"),
-                ", д. ",
+                SEP_HOUSE,
                 (house, "ADDRESS"),
             ],
         ),
@@ -931,9 +935,9 @@ def address(rng: random.Random) -> list[tuple[str, list]]:
             "compact_dash",
             [
                 (city, "ADDRESS"),
-                ", ул. ",
+                SEP_STREET,
                 (street, "ADDRESS"),
-                ", д. ",
+                SEP_HOUSE,
                 (house, "ADDRESS"),
                 "-",
                 (apt, "ADDRESS"),
@@ -963,9 +967,9 @@ def address(rng: random.Random) -> list[tuple[str, list]]:
                 street_type,
                 " ",
                 (street, "ADDRESS"),
-                ", д. ",
+                SEP_HOUSE,
                 (house, "ADDRESS"),
-                ", кв. ",
+                SEP_FLAT,
                 (apt, "ADDRESS"),
             ],
         ),

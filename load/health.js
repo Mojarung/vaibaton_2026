@@ -1,6 +1,6 @@
 import http from "k6/http";
 
-const TARGET = __ENV.TARGET || "http://api:8080";
+const TARGET = __ENV.TARGET;
 const RATE = Number(__ENV.RATE || 5000);
 
 export const options = {
@@ -17,6 +17,6 @@ export const options = {
   summaryTrendStats: ["avg", "med", "p(95)", "p(99)", "max"],
 };
 
-export default function () {
+export default function healthProbe() {
   http.get(`${TARGET}/health/live`);
 }
