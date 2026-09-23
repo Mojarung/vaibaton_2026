@@ -1,0 +1,57 @@
+type: PASSPORT
+label_ru: ПАСПОРТ
+label_en: PASSPORT
+rules:
+  - id: passport_series_number_words
+    min_digits: 10
+    requires_any: ["сер", "с."]
+    pattern: "(?:сери[яи]|сер\\.|с\\.)\\s*[:№]?\\s*(?P<v1>\\d{2}\\s?\\d{2})\\s*[,;]?\\s*(?:номер|ном\\.|н\\.|№|n|no\\.?)\\s*[:]?\\s*(?P<v2>\\d{6}){END}"
+    confidence: 0.99
+    priority: 135
+  - id: passport_number_series_words
+    min_digits: 10
+    requires_any: ["сер"]
+    pattern: "(?:номер|№)\\s*[:]?\\s*(?P<v2>\\d{6})\\s*[,;]?\\s*(?:сери[яи]|сер\\.)\\s*[:№]?\\s*(?P<v1>\\d{2}\\s?\\d{2}){END}"
+    confidence: 0.97
+    priority: 134
+  # «Серия/номер: 4012/667788»
+  - id: passport_slash_label
+    min_digits: 10
+    requires_any: ["сери"]
+    pattern: "сери[яи]\\s*/\\s*номер{SEP}(?P<v1>\\d{2}\\s?\\d{2})\\s*/\\s*(?P<v2>\\d{6}){END}"
+    confidence: 0.99
+    priority: 136
+  - id: passport_ctx
+    min_digits: 10
+    requires_any: ["паспорт", "passport", "п/п", "документ"]
+    pattern: "(?:паспорт\\p{L}*(?:\\s+данн\\p{L}+)?(?:\\s+(?:рф|гражданина\\s+рф|гражданина\\s+россии|россии|российской\\s+федерации))?{LT}|passport|п/п|документ\\p{L}*(?:,?\\s+удостоверяющ\\p{L}+\\s+личность)?)[\\s:№#\\-–—\"']*(?:сери[яи]\\s*[:№]?\\s*)?(?P<v1>\\d{2}\\s?\\d{2})\\s*[,;]?\\s*(?:номер|№|n|no\\.?)?\\s*[:]?\\s*(?P<v2>\\d{6}){END}"
+    confidence: 0.98
+    priority: 130
+  - id: passport_ctx_10
+    min_digits: 10
+    requires_any: ["паспорт", "passport"]
+    pattern: "(?:паспорт\\p{L}*|passport)[^\\d\\n;]{0,25}?(?P<v>\\d(?:[ ]?\\d){3}[ \\-]?\\d(?:[ ]?\\d){5}){END}"
+    confidence: 0.95
+    priority: 118
+  - id: passport_number_only
+    min_digits: 6
+    requires_any: ["паспорт"]
+    pattern: "(?:номер\\s+паспорта|паспорт\\s+№|№\\s*паспорта)\\s*[:]?\\s*(?P<v>\\d{6}){END}"
+    confidence: 0.9
+    priority: 115
+  # «паспорт имеет серию 4389, номер 112233», «Серия: 11 - 22, номер: 333444»: между серией и
+  # номером слова и знаки. Водительское с тем же форматом забирает правило dl_series_number.
+  - id: passport_series_then_number
+    min_digits: 10
+    requires_any: ["сери"]
+    pattern: "\\bсери[яиюей]\\s*[:\\-]?\\s*(?P<v1>\\d{2}(?:[ \\t]?-?[ \\t]?)\\d{2})(?!\\d)[^\\d\\n]{1,15}?\\bномер\\p{L}*\\s*[:\\-]?\\s*(?P<v2>\\d{3}(?:[ \\t]?-?[ \\t]?)\\d{3}){END}"
+    confidence: 0.95
+    priority: 133
+    negative_context: ["водит\\p{L}*|\\bправ[аое]?\\b|\\bв\\s*/\\s*у\\b|свидетельств\\p{L}+|военн\\p{L}+|полис\\p{L}*"]
+    negative_window: 60
+  - id: passport_bare
+    min_digits: 10
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{2}\\s?\\d{2}\\s\\d{6}){END}"
+    confidence: 0.8
+    priority: 75
+    validators: [not_repeated]

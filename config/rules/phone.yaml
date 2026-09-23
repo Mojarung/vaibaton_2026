@@ -1,0 +1,46 @@
+type: PHONE
+label_ru: ТЕЛЕФОН
+label_en: PHONE
+rules:
+  - id: phone_ctx
+    min_digits: 7
+    requires_any: ["тел", "моб", "сотов", "phone", "mobile", "тлф", "звон", "номер", "контакт", "whatsapp", "telegram", "вайбер", "viber", "ватсап", "телега"]
+    pattern: "(?:тел(?:ефон\\p{L}*|\\.)?|моб(?:ильн\\p{L}+|\\.)?|мобила|сотов\\p{L}+|phone|mobile|тлф|звонить|позвонить|перезвонить|номер\\s+телефона|контактн\\p{L}+\\s+номер|whatsapp|telegram|вайбер|viber|ватсап|телега){LT}{SEP}(?P<v>\\+?[\\d(][\\d()\\s\\-.]{6,22}\\d){END}"
+    confidence: 0.98
+    priority: 120
+    validators: [phone_digits]
+    negative_context: ["\\x02\\+?[78][\\s\\-]?\\(?80[04]\\)?", "горяч\\p{L}+\\s+лини\\p{L}+", "(?:колл?|контакт)[\\s\\-]?центр\\p{L}*", "служб\\p{L}+\\s+поддержк\\p{L}+", "для\\s+юр\\.?\\s*лиц|юрлиц\\p{L}*|юридических\\s+лиц"]
+    negative_window: 40
+    # Справа от номера часто начинается следующая фраза: «... 18. Горячая линия 8 800 ...»
+    negative_after: 0
+  - id: phone_local_ctx
+    min_digits: 7
+    requires_any: ["тел", "phone"]
+    pattern: "(?:тел(?:ефон\\p{L}*|\\.)?|phone)(?:\\s+\\p{L}+)?{SEP}(?P<v>\\d{3}[\\-\\s]\\d{2}[\\-\\s]\\d{2}){END}"
+    confidence: 0.9
+    priority: 118
+  - id: phone_ru
+    min_digits: 10
+    pattern: "(?<![\\d\\p{L}])(?P<v>(?:\\+7|8|7)[\\s\\-.]*\\(?\\d{3}\\)?[\\s\\-.]*\\d{3}[\\s\\-.]*\\d{2}[\\s\\-.]*\\d{2}){END}"
+    confidence: 0.96
+    priority: 110
+    validators: [phone_digits]
+    negative_context: ["\\x02\\+?[78][\\s\\-]?\\(?80[04]\\)?", "горяч\\p{L}+\\s+лини\\p{L}+", "справочн\\p{L}+", "(?:колл?|контакт)[\\s\\-]?центр\\p{L}*", "служб\\p{L}+\\s+поддержк\\p{L}+", "для\\s+юр\\.?\\s*лиц|юрлиц\\p{L}*|юридических\\s+лиц"]
+    negative_window: 40
+    # Справа от номера часто начинается следующая фраза: «... 18. Горячая линия 8 800 ...»
+    negative_after: 0
+  - id: phone_intl
+    min_digits: 9
+    requires_any: ["+"]
+    pattern: "(?<![\\d\\p{L}])(?P<v>\\+\\d{1,3}[\\s\\-.]*\\(?\\d{2,4}\\)?[\\s\\-.]*\\d{2,4}[\\s\\-.]*\\d{2,4}(?:[\\s\\-.]*\\d{2,4})?){END}"
+    confidence: 0.85
+    priority: 100
+    validators: [phone_digits]
+    negative_context: ["(?:колл?|контакт)[\\s\\-]?центр\\p{L}*", "горяч\\p{L}+\\s+лини\\p{L}+", "служб\\p{L}+\\s+поддержк\\p{L}+", "для\\s+юр\\.?\\s*лиц|юрлиц\\p{L}*|юридических\\s+лиц"]
+    negative_window: 40
+    negative_after: 0
+  - id: phone_bare_mobile
+    min_digits: 10
+    pattern: "(?<![\\d\\p{L}+\\-/.,(])(?P<v>9\\d{2}[\\s\\-]\\d{3}[\\s\\-]\\d{2}[\\s\\-]\\d{2}|9\\d{9})(?![\\d\\-/.)])"
+    confidence: 0.7
+    priority: 65

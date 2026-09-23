@@ -1,0 +1,133 @@
+# Адрес маскируется по компонентам: значение скрывается, служебное слово («ул.», «д.») остаётся.
+type: ADDRESS
+label_ru: АДРЕС
+label_en: ADDRESS
+rules:
+  - id: addr_postcode_ctx
+    min_digits: 6
+    requires_any: ["индекс", "zip", "postcode", "postal"]
+    pattern: "(?:индекс\\p{L}*|почтов\\p{L}+\\s+индекс\\p{L}*|\\bzip\\b|postcode|postal\\s+code){LT}{SEP}(?P<v>\\d{6}){END}"
+    subtype: POSTCODE
+    confidence: 0.98
+    priority: 128
+  - id: addr_postcode_chain
+    min_digits: 6
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{6}){END}(?=\\s*,\\s*(?:{ABBR_CITY}|город|россия|рф|ул\\.|улица|пр-т|проспект|{U}[\\p{L}\\-]+\\s+(?:обл|область|край|респ)|{U}[\\p{L}\\-]+(?:[ \\t]+{U}[\\p{L}\\-]+)?\\s*,))"
+    subtype: POSTCODE
+    confidence: 0.9
+    priority: 104
+  - id: addr_country_ctx
+    requires_any: ["страна", "country"]
+    pattern: "(?:\\bстрана(?:\\s+(?:проживания|регистрации|пребывания|места\\s+жительства))?|country(?:\\s+of\\s+residence)?){SEP}(?P<v>\\p{L}[\\p{L}\\-]*(?:\\s+\\p{L}[\\p{L}\\-]*)?)"
+    subtype: COUNTRY
+    confidence: 0.95
+    priority: 126
+    gazetteer_check: countries_shrink
+  - id: addr_country_chain
+    min_digits: 6
+    requires_any: ["росси", "рф", "russia"]
+    pattern: "(?<![\\p{L}\\-])(?P<v>(?:Россия|РФ|Российская\\s+Федерация|Russia))(?=\\s*,\\s*\\d{6})"
+    subtype: COUNTRY
+    confidence: 0.9
+    priority: 105
+  - id: addr_region_after
+    requires_any: ["обл", "кра", "респ", "округ", " ао"]
+    pattern: "(?<![\\p{L}\\-])(?P<v>{U}[\\p{L}\\-]+)\\s+(?:обл\\.|область|области|кра[йяе]|респ\\.|республик[аие]|автономн\\p{L}+\\s+округ\\p{L}*|\\bАО\\b|гор\\.?\\s*окр\\p{L}*|городской\\s+округ)"
+    subtype: REGION
+    confidence: 0.9
+    priority: 108
+  - id: addr_region_before
+    requires_any: ["респ", "обл", "кра"]
+    pattern: "(?:республик[аие]|респ\\.|область|обл\\.|край|кра[яю])[ \\t]+(?P<v>{U}[\\p{L}\\-]+(?:[ \\t]+{U}[\\p{L}\\-]+)?)"
+    subtype: REGION
+    confidence: 0.85
+    priority: 103
+  - id: addr_district
+    requires_any: ["р-н", "район"]
+    pattern: "(?<![\\p{L}\\-])(?P<v>{U}[\\p{L}\\-]*(?:ск|цк)\\p{L}{1,3})\\s+(?:р-н|район[а-яё]*)(?![\\p{L}])|(?:\\bр-н|\\bрайон)[ \\t]+(?P<v2>{U}[\\p{L}\\-]+)"
+    subtype: DISTRICT
+    confidence: 0.85
+    priority: 106
+  - id: addr_city_abbr
+    requires_any: ["г.", "гор.", "с.", "д.", "п.", "ст.", "пос.", "дер.", "рп.", "пгт", "снт", "х."]
+    pattern: "{ABBR_CITY}\\s*(?P<v>{U}[\\p{L}\\-]+(?:[ \\t]+{NOT_REGION}{U}[\\p{L}\\-]+)?)"
+    subtype: CITY
+    confidence: 0.95
+    priority: 117
+  - id: addr_city_word
+    requires_any: ["город", "сел", "деревн", "посёл", "посел", "станиц", "аул", "хутор", "пгт", "снт", "с/п", "мкр"]
+    pattern: "(?:\\bгород[ае]?|\\bсело|\\bселе|\\bдеревн[яеи]|\\bпос[её]л[ко][ек]?|\\bстаниц[аеы]|\\bаул[ае]?|\\bхутор[ае]?|\\bпгт\\.?|\\bснт\\b|\\bс/п|\\bмкр\\.?(?=\\s*{U}))(?:\\s*:\\s*|\\s+)(?P<v>\\p{L}[\\p{L}\\-]+(?:[ \\t]+{NOT_REGION}{U}[\\p{L}\\-]+)?)"
+    subtype: CITY
+    confidence: 0.93
+    priority: 116
+  - id: addr_city_chain
+    requires_any: ["ул", "пр", "пер", "б-р", "бульвар", "ш.", "шоссе", "наб", "пл", "проезд", "тупик", "алле", "мкр", "микрорайон", "квартал", "кв-л", "тракт", "корп", "стр", "д.", "дом"]
+    pattern: "(?<![\\p{L}\\-])(?!(?:город|гор|село|деревня|посёлок|поселок|станица|адрес\\p{L}*|по|в|на)\\b)(?P<v>{U}[\\p{L}\\-]+(?:[ \\t]+{U}[\\p{L}\\-]+)?)(?=,\\s*(?:{STREET_TYPE}|\\d{6}\\b|корп\\.|стр\\.|д\\.|дом\\b|{U}[\\p{L}\\-]+[ \\t]+{STREET_TYPE}))"
+    subtype: CITY
+    confidence: 0.85
+    priority: 102
+    gazetteer_check: geox
+  - id: addr_street
+    requires_any: ["ул", "пр", "пер", "б-р", "бульвар", "ш.", "шоссе", "наб", "пл", "проезд", "тупик", "алле", "мкр", "микрорайон", "квартал", "кв-л", "тракт", "стрит", "street", "st."]
+    pattern: "(?:\\b{STREET_TYPE}|\\bстрит|\\bstreet|\\bst\\.)\\s*(?P<v>(?=[\\d\\-\\. ]*\\p{L})[\\p{L}\\d][\\p{L}\\d\\-\\. ]{0,40}?)(?=\\s*(?:,|;|\\n|$|\\bд\\.|\\bдом\\b|\\bстр\\.|\\bкорп\\.|\\bк\\.|\\bкв\\.|\\bоф\\.|\\d+\\s*[,;]|\\d+\\s*$|\\d+\\s*[\\-/]|\\d+\\s*(?:кв|к|стр|корп|оф|\\p{Ll})))"
+    subtype: STREET
+    confidence: 0.95
+    priority: 120
+    gazetteer_check: no_verbs
+  - id: addr_street_line
+    requires_any: ["лини"]
+    pattern: "(?<![\\d\\-])(?P<v>\\d{1,2}-?[яи])\\s+лини[яи]"
+    subtype: STREET
+    confidence: 0.9
+    priority: 115
+  - id: addr_street_reversed
+    requires_any: ["ул", "пр", "пер", "б-р", "бульвар", "ш.", "шоссе", "наб", "пл", "проезд", "тупик", "алле", "мкр", "микрорайон", "квартал", "кв-л", "тракт"]
+    pattern: "(?<![\\p{L}\\-])(?!(?:ул|улица|проспект|пр-т|переулок|пер|бульвар|б-р|шоссе|набережная|площадь|проезд|тупик|аллея|город|гор|адрес|на|в|во|по|у|от|до|за|из|к|с|о|об|при)\\b)(?P<v>{U}[\\p{L}\\-]+(?:[ \\t]+{U}[\\p{L}\\-]+)?)\\s+{STREET_TYPE}"
+    subtype: STREET
+    confidence: 0.9
+    priority: 114
+    # Общеизвестные площади и проспекты без номера дома - не адрес человека
+    negative_context: ["\\x02(?:красн|дворцов|манежн|сенатск|театральн|пушкинск|лубянск|болотн)\\p{L}*\\x03\\s+площад"]
+    negative_window: 0
+    negative_after: 12
+  # Английская запись: «Address: Moscow, Tverskaya str. 7», «I live at Moscow, Bolshaya Yakimanka str. 24»
+  - id: addr_en
+    min_digits: 1
+    requires_any: ["address", "live at", "living at", "reside"]
+    pattern: "(?:\\baddress|\\blive\\s+at|\\bliving\\s+at|\\bresid\\p{L}*\\s+at)\\s*:?\\s*(?P<v1>(?-i:[A-Z])[A-Za-z'\\-]+(?:[ \\t](?-i:[A-Z])[A-Za-z'\\-]+)?),\\s*(?P<v2>(?-i:[A-Z])[A-Za-z'\\-]+(?:[ \\t](?-i:[A-Z])[A-Za-z'\\-]+){0,2})\\s+(?:str\\.|street|st\\.|ave\\.?|avenue|prospekt|pr\\.|lane|road|rd\\.|blvd\\.?|boulevard|per\\.|pereulok|ul\\.)\\s*,?\\s*(?P<v3>\\d{1,4}[A-Za-z]?){END}"
+    confidence: 0.93
+    priority: 118
+  - id: addr_house
+    min_digits: 1
+    requires_any: ["д.", "дом", "д ", "house", "bld", "влад"]
+    pattern: "(?:\\bд\\.|\\bдом[ае]?|\\bд\\b|\\bhouse|\\bbld\\.?|\\bвлад\\.|\\bвладени[ея])\\s*[:№]?\\s*(?P<v>\\d{1,4}(?:\\s?[\\p{L}](?![\\p{L}]))?(?:\\s?/\\s?\\d{1,3}(?:[\\p{L}](?![\\p{L}]))?)?){END}"
+    subtype: HOUSE
+    confidence: 0.95
+    priority: 121
+  - id: addr_house_after_street
+    min_digits: 1
+    requires_any: ["ул", "пр", "пер", "б-р", "бульвар", "ш.", "шоссе", "наб", "пл", "проезд", "тупик", "алле", "мкр", "микрорайон", "квартал", "кв-л", "тракт"]
+    pattern: "(?:\\b{STREET_TYPE}[ \\t]*[\\p{L}\\d\\-. ]{0,40}?|{U}[\\p{L}\\-]+[ \\t]+{STREET_TYPE}),\\s*(?P<v>\\d{1,4}(?:[\\p{L}](?![\\p{L}]))?)(?:\\s*[\\-/]\\s*(?P<v2>\\d{1,4}))?(?![\\d])(?=\\s*(?:,|;|$|\\.(?:\\s|$)|\\n|кв|корп|стр|к\\.|оф))"
+    subtype: HOUSE
+    confidence: 0.9
+    priority: 110
+  - id: addr_building
+    min_digits: 1
+    requires_any: ["корп", "к.", "стр", "лит", "подъезд", "под."]
+    pattern: "(?:\\bкорп\\.|\\bкорпус[ае]?|\\bк\\.|\\bстр\\.|\\bстроени[ея]|\\bлит\\.|\\bлитера|\\bподъезд[ае]?|\\bпод\\.)\\s*[:№]?\\s*(?P<v>\\d{1,4}(?:[\\p{L}](?![\\p{L}]))?){END}"
+    subtype: BUILDING
+    confidence: 0.93
+    priority: 119
+  - id: addr_letter
+    requires_any: ["лит"]
+    pattern: "(?:\\bлит\\.|\\bлитер[аы]?)\\s*(?P<v>{U})(?![\\p{L}])"
+    subtype: BUILDING
+    confidence: 0.93
+    priority: 119
+  - id: addr_apartment
+    min_digits: 1
+    requires_any: ["кв", "оф", "пом", "комн", "apt", "эт", "каб"]
+    pattern: "(?:\\bкв\\.|\\bквартир[аеы]|\\bкв\\b|\\bоф\\.|\\bофис[ае]?|\\bпом\\.|\\bпомещени[ея]|\\bкомн\\.|\\bкомнат[аеы]|\\bapt\\.?|\\bэт\\.|\\bэтаж[ае]?|\\bкаб\\.|\\bкабинет[ае]?)\\s*[:№]?\\s*(?P<v>\\d{1,4}(?:[\\p{L}](?![\\p{L}]))?){END}"
+    subtype: APARTMENT
+    confidence: 0.95
+    priority: 121

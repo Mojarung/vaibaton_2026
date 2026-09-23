@@ -1,0 +1,14 @@
+.venv/
+.git/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+datasets/
+reports/
+load/
+docs/
+tests/
+tools/
+*.zip
+.env

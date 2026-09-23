@@ -1,0 +1,73 @@
+[project]
+name = "pii-guard"
+version = "0.1.0"
+description = "Модуль безопасности персональных данных: идентификация, маскирование и демаскирование ПДн в запросах к LLM"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.141.1",
+    "granian>=2.8.3",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "orjson>=3.12.0",
+    "regex>=2026.9.10",
+    "structlog>=26.1.0",
+    "redis[hiredis]>=8.1.0",
+    "cryptography>=50.0.1",
+    "httpx>=0.28.1",
+    "prometheus-client>=0.26.0",
+    "pyyaml>=6.0.3",
+    "watchfiles>=1.3.0",
+    "pymorphy3>=2.0.6",
+    "pymorphy3-dicts-ru",
+]
+
+[project.optional-dependencies]
+server = [
+    "granian>=2.8.3",
+    "uvloop>=0.22.1; sys_platform != 'win32'",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.8",
+    "uvicorn[standard]>=0.53.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pii_guard"]
+
+[tool.uv]
+# Фиксируем верхнюю границу времени публикации пакетов: uv lock на любой машине
+# выберет те же версии, и lock-файл воспроизводим.
+exclude-newer = "2026-09-21T12:00:00Z"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = ["datasets", "reports"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "I", "UP", "B", "ASYNC", "SIM", "C4", "RUF",
+    "C90", "BLE", "ARG", "PLC0415", "PLW", "PERF", "FURB", "PIE", "TRY",
+]
+# E501: длина строки проверяется форматтером; RUF001-RUF003: в коде много
+# кириллицы, ruff ругается на похожие буквы.
+# TRY003: сообщения в исключениях у нас по-русски и нормальные.
+# TRY400: log.exception может записать в лог ПДн из трейсбека, поэтому
+# в местах, где ловим всё, используем log.error с типом исключения.
+ignore = ["E501", "RUF001", "RUF002", "RUF003", "TRY003", "TRY400"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15

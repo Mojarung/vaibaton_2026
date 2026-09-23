@@ -1,0 +1,25 @@
+type: DRIVER_LICENSE
+label_ru: ВОДИТЕЛЬСКОЕ_УДОСТОВЕРЕНИЕ
+label_en: DRIVER_LICENSE
+rules:
+  - id: dl_ctx
+    min_digits: 8
+    requires_any: ["водит", "в/у", "в / у", "ву", "вод.", "driver", "права"]
+    pattern: "(?:водительск\\p{L}+\\s+(?:удостоверени\\p{L}+|прав\\p{L}*)|в\\s*/\\s*у|\\bву\\b|вод\\.\\s*удост\\p{L}*|driver'?s?\\s+licen[cs]e|\\bправа\\b)[\\s:№#\\-–]*(?:серия\\s*[:№]?\\s*)?(?P<v1>\\d{2}\\s?[\\d\\p{Lu}]{2})\\s*[,;]?\\s*(?:номер|№|n|no\\.?)?\\s*[:]?\\s*(?P<v2>\\d{6}){END}"
+    confidence: 0.98
+    priority: 136
+  # «Серия прав 92 20, номер 112233», «предъявил права серии 50 19, номер 123456»
+  - id: dl_series_number
+    min_digits: 10
+    requires_any: ["сери"]
+    pattern: "\\bсери[яиюей]\\s*(?:прав\\s*)?[:\\-]?\\s*(?P<v1>\\d{2}(?:[ \\t]?-?[ \\t]?)[\\d\\p{Lu}]{2})(?![\\d\\p{L}])[^\\d\\n]{1,15}?\\bномер\\p{L}*\\s*[:\\-]?\\s*(?P<v2>\\d{3}(?:[ \\t]?-?[ \\t]?)\\d{3}){END}"
+    confidence: 0.96
+    priority: 134
+    required_context: ["водит\\p{L}*|\\bправ[аое]?\\b|\\bв\\s*/\\s*у\\b"]
+    required_window: 80
+  - id: dl_ctx_10
+    min_digits: 10
+    requires_any: ["водит", "в/у", "в / у", "ву", "driver"]
+    pattern: "(?:водительск\\p{L}+\\s+удостоверени\\p{L}+|в\\s*/\\s*у|\\bву\\b|driver'?s?\\s+licen[cs]e)[^\\d\\n;]{0,25}?(?P<v>\\d{10}){END}"
+    confidence: 0.95
+    priority: 119

@@ -1,0 +1,31 @@
+# Виртуальное окружение
+.venv/
+
+# Кэши Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Секреты
+.env
+
+# Результаты нагрузки
+load/results/
+
+# Сборка
+dist/
+build/
+
+# Архивы
+*.zip
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Прочее
+reports/
+*.db

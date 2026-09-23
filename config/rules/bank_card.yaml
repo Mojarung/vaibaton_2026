@@ -1,0 +1,32 @@
+type: BANK_CARD
+label_ru: НОМЕР_КАРТЫ
+label_en: BANK_CARD
+rules:
+  # negative_context у правил: тестовые номера платёжных систем из инструкций к оплате
+  - id: card_ctx
+    min_digits: 13
+    requires_any: ["карт", "card", "pan", "visa", "mastercard", "maestro", "unionpay", "реквизит"]
+    pattern: "(?:номер\\s+(?:банковск\\p{L}+\\s+|платёжн\\p{L}+\\s+|платежн\\p{L}+\\s+|кредитн\\p{L}+\\s+|дебетов\\p{L}+\\s+|зарплатн\\p{L}+\\s+)?карт\\p{L}*|(?:банковск|платёжн|платежн|кредитн|дебетов|зарплатн)\\p{L}+\\s+карт\\p{L}+|карт[аыеуой](?:\\s+(?:visa|mastercard|мир|maestro|unionpay|№))?|card(?:\\s+number)?|\\bpan\\b|visa|mastercard|maestro|unionpay|реквизит\\p{L}+){SEP}(?P<v>(?:\\d[ \\-]?){12,18}\\d){END}"
+    confidence: 0.98
+    priority: 135
+    negative_context: ["тест\\p{L}*|test|sandbox|песочниц\\p{L}*", "\\x02(?:4111[ \\-]?1111[ \\-]?1111[ \\-]?1111|4242[ \\-]?4242[ \\-]?4242[ \\-]?4242|5555[ \\-]?5555[ \\-]?5555[ \\-]?4444)\\x03"]
+    negative_window: 40
+    negative_after: 0
+  - id: card_luhn
+    min_digits: 13
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{4}(?:[ \\-]\\d{4}){3}[ \\-]\\d{2,3}|(?:\\d{4}(?:[ \\-]|[ ]{2})?){3}\\d{4}|\\d{13,19}|(?:\\d{4}[ \\-]){2}\\d{4}[ \\-]\\d{1,3}|\\d{4}[ \\-]\\d{6}[ \\-]\\d{5}){END}"
+    confidence: 0.95
+    priority: 105
+    validators: [luhn]
+    negative_context: ["тест\\p{L}*|test|sandbox|песочниц\\p{L}*", "\\x02(?:4111[ \\-]?1111[ \\-]?1111[ \\-]?1111|4242[ \\-]?4242[ \\-]?4242[ \\-]?4242|5555[ \\-]?5555[ \\-]?5555[ \\-]?4444)\\x03"]
+    negative_window: 40
+    negative_after: 0
+  - id: card_grouped
+    min_digits: 14
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{4}[ \\-]\\d{4}[ \\-]\\d{4}[ \\-]\\d{4}(?:[ \\-]\\d{2,3})?|\\d{4}[ \\-]\\d{4}[ \\-]\\d{4}[ \\-]\\d{2,7}){END}"
+    confidence: 0.85
+    priority: 95
+    validators: [not_repeated]
+    negative_context: ["тест\\p{L}*|test|sandbox|песочниц\\p{L}*", "\\x02(?:4111[ \\-]?1111[ \\-]?1111[ \\-]?1111|4242[ \\-]?4242[ \\-]?4242[ \\-]?4242|5555[ \\-]?5555[ \\-]?5555[ \\-]?4444)\\x03"]
+    negative_window: 40
+    negative_after: 0

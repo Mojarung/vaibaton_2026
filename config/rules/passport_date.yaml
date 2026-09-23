@@ -1,0 +1,16 @@
+type: PASSPORT_DATE
+label_ru: ДАТА_ВЫДАЧИ
+label_en: PASSPORT_DATE
+rules:
+  - id: issue_ctx_before
+    requires_any: ["выдач", "выдан", "issue", "д/в", "дата выд"]
+    pattern: "(?:дат[аыуе]\\s+выдачи(?:\\s+(?:паспорта|документа|в/у|удостоверения))?|\\bд/в\\b|дата\\s+выд\\.|выдан\\p{L}*|date\\s+of\\s+issue|issued(?:\\s+on)?)[^\\n;]{0,80}?(?P<v>{DATE}){YEAR_SUFFIX}"
+    confidence: 0.98
+    priority: 132
+    validators: [date_any]
+  - id: issue_ctx_after
+    requires_any: ["выдач", "выдан"]
+    pattern: "(?P<v>{DATE})\\s*(?:г\\.?|года)?\\s*(?:выдачи|выдан\\p{L}*)"
+    confidence: 0.97
+    priority: 131
+    validators: [date_any]

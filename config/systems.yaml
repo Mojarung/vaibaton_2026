@@ -1,0 +1,42 @@
+# Политики систем-потребителей.
+# Файл перечитывается на лету. Запрос без заголовков X-System-Id и X-Api-Key
+# обслуживает default_system. Админ-API (PUT и DELETE /admin/systems/{id})
+# перезаписывает файл целиком.
+default_system: default
+defaults:
+  enabled: true
+  entity_types: all
+  mask_mode: placeholder
+  placeholder_lang: ru
+  unmask: true
+  contextual: true
+  single_value_mode: true
+  bare_date_policy: birth_like
+  ttl_seconds: 86400
+  llm_proxy: true
+systems:
+  default:
+    description: Система по умолчанию (автопроверка, запросы без заголовков)
+  crm:
+    description: CRM операционистов, ответы LLM возвращаются клиенту
+    api_key_env: KEY_CRM
+    mask_mode: synthetic
+    type_modes:
+      BANK_CARD: partial
+  support_bot:
+    description: Чат-бот поддержки, демаскирование запрещено, PIN и CVV только вместе
+      с картой
+    api_key_env: KEY_SUPPORT
+    unmask: false
+    exclude_types:
+    - CITIZENSHIP
+    combo_rules:
+    - type: PIN
+      requires: BANK_CARD
+      window: 200
+    - type: CVV
+      requires: BANK_CARD
+      window: 200
+  analytics:
+    description: Аналитика, отключена
+    enabled: false

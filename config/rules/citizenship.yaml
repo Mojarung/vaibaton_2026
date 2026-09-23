@@ -1,0 +1,31 @@
+type: CITIZENSHIP
+label_ru: ГРАЖДАНСТВО
+label_en: CITIZENSHIP
+rules:
+  - id: citizenship_ctx
+    requires_any: ["граждан", "подданств", "citizenship", "nationality", "национальн"]
+    pattern: "(?:гражданств\\p{L}*|подданств\\p{L}*|citizenship|nationality|национальност\\p{L}*){SEP}(?P<v>\\p{L}[\\p{L}\\-]*(?:[ \\t]+\\p{L}[\\p{L}\\-]*){0,2})"
+    confidence: 0.97
+    priority: 128
+    gazetteer_check: countries_shrink
+  - id: citizenship_list
+    requires_any: ["граждан"]
+    pattern: "(?:гражданств\\p{L}*|граждан\\p{L}*)[^.\\n;]{1,40}?\\s(?:и|,)\\s+(?P<v>\\p{L}[\\p{L}\\-]*(?:[ \\t]+\\p{L}[\\p{L}\\-]*)?)"
+    confidence: 0.85
+    priority: 120
+    gazetteer_check: countries_shrink
+  - id: citizenship_republic
+    requires_any: ["республик"]
+    pattern: "(?<![\\p{L}])(?P<v>(?-i:Р)еспублик[аи][ \\t]+{U}[\\p{L}\\-]+)"
+    confidence: 0.85
+    priority: 110
+    gazetteer_check: countries_shrink
+  - id: citizen_of
+    requires_any: ["граждан", "подданн", "citizen", "уроженец", "уроженка"]
+    pattern: "(?:гражданин\\p{L}*|гражданк\\p{L}+|граждан[еа]|подданн\\p{L}+|citizen\\s+of|уроженец|уроженка)\\s+(?P<v>\\p{L}[\\p{L}\\-]*(?:[ \\t]+\\p{L}[\\p{L}\\-]*){0,2})"
+    confidence: 0.95
+    priority: 124
+    gazetteer_check: countries_shrink
+    # «паспорт гражданина РФ» - вид документа; «паспорт гражданина Узбекистана» - гражданство
+    negative_context: ["паспорт\\p{L}*\\s+граждан\\p{L}*\\s+\\x02(?:рф|росси|российск)"]
+    negative_window: 30

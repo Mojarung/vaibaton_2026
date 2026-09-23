@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Демо модуля ПДн</title>
+<style>
+:root {
+  --bg: #f4f4f5;
+  --panel: #ffffff;
+  --border: #e2e2e6;
+  --text: #1a1a1a;
+  --muted: #6b6b70;
+  --accent: #c8102e;
+  --accent-hover: #a80d26;
+  --chip-bg: #fde8ec;
+  --token-bg: #e8f1fb;
+  --token-underline: #2f6fd0;
+  --success: #1a7f37;
+  --success-bg: #e6f4ea;
+  --warn: #9a5b00;
+  --warn-bg: #fdf3e3;
+  --radius: 9px;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121214;
+    --panel: #1c1c1f;
+    --border: #333338;
+    --text: #e8e8ea;
+    --muted: #9a9aa2;
+    --accent: #ff4d6a;
+    --accent-hover: #ff6b84;
+    --chip-bg: #3a1f26;
+    --token-bg: #1e2f45;
+    --token-underline: #6ea8ff;
+    --success: #4cc38a;
+    --success-bg: #14301f;
+    --warn: #e0a34e;
+    --warn-bg: #33260f;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+header h1 { margin: 0; font-size: 22px; }
+header h1 .accent { color: var(--accent); }
+header .sub { color: var(--muted); font-size: 13px; }
+header nav { display: flex; gap: 16px; font-size: 14px; }
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px 40px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.panel.full { grid-column: 1 / -1; }
+.panel h2 { margin: 0 0 12px; font-size: 16px; }
+.panel .hint { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+textarea, input, select {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+textarea { font-family: var(--mono); resize: vertical; }
+textarea:focus, input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+button {
+  font: inherit;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.status { margin-top: 12px; font-size: 14px; min-height: 22px; }
+.status.ok { color: var(--success); }
+.status.warn { color: var(--warn); }
+.status.err { color: var(--accent); }
+.out {
+  font-family: var(--mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  min-height: 80px;
+  max-height: 260px;
+  overflow: auto;
+}
+.token {
+  background: var(--token-bg);
+  border-bottom: 2px solid var(--token-underline);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.chip {
+  background: var(--chip-bg);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 13px;
+  font-family: var(--mono);
+}
+.timing { color: var(--muted); font-size: 13px; margin-top: 8px; font-family: var(--mono); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+td.mono, th.mono { font-family: var(--mono); }
+td .subtype { color: var(--muted); font-size: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.tile {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.tile .tlabel { color: var(--muted); font-size: 12px; }
+.tile .tvalue { font-size: 22px; font-weight: 600; font-family: var(--mono); }
+details { margin-top: 14px; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
+summary { cursor: pointer; font-weight: 600; }
+.log { font-family: var(--mono); font-size: 13px; white-space: pre-wrap; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Демо модуля <span class="accent">ПДн</span></h1>
+    <div class="sub">маскирование перед LLM и восстановление ответа</div>
+  </div>
+  <nav>
+    <a href="/docs">API</a>
+    <a href="/stats">/stats</a>
+    <a href="/metrics">/metrics</a>
+  </nav>
+</header>
+
+<main>
+  <div class="grid">
+
+    <div class="panel">
+      <h2>1. Исходный текст</h2>
+      <textarea id="input" rows="8" spellcheck="false"></textarea>
+      <label for="example">Пример</label>
+      <select id="example"></select>
+      <label for="system">Система</label>
+      <select id="system">
+        <option value="">default: плейсхолдеры</option>
+        <option value="crm">crm: синтетика, карта частично</option>
+        <option value="support_bot">support_bot: без демаскирования</option>
+      </select>
+      <label for="apiKey">X-Api-Key</label>
+      <input id="apiKey" type="password" placeholder="необязательно">
+      <div class="row">
+        <button id="btnMask" class="primary">Замаскировать</button>
+        <button id="btnLlm">Через LLM-прокси</button>
+        <button id="btnProcess">Контракт /process</button>
+      </div>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="panel">
+      <h2>2. Что уходит наружу</h2>
+      <div id="out" class="out"></div>
+      <div id="chips" class="chips"></div>
+      <div id="timing" class="timing"></div>
+    </div>
+
+    <div class="panel">
+      <h2>3. Восстановление</h2>
+      <p class="hint">Ответ можно отредактировать так, как его переписала бы LLM. Плейсхолдеры можно переставлять и повторять.</p>
+      <textarea id="answer" rows="5"></textarea>
+      <div class="row">
+        <button id="btnUnmask" disabled>Демаскировать</button>
+      </div>
+      <div id="restored" class="out" style="margin-top:10px"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Найденные значения</h2>
+      <p class="hint">Значения показаны только в этом браузере. Сервер их не логирует и не отдаёт в метрики.</p>
+      <table>
+        <thead><tr><th>Тип</th><th>Токен</th><th>Позиция</th><th>Значение</th></tr></thead>
+        <tbody id="found"></tbody>
+      </table>
+    </div>
+
+    <div class="panel full">
+      <h2>Нагрузка за последние 60 секунд</h2>
+      <div class="tiles" id="tiles"></div>
+      <details id="processLog">
+        <summary>Контракт /process: два вызова с одним payload_id</summary>
+        <div id="processLogBody" class="log"></div>
+      </details>
+    </div>
+
+  </div>
+</main>
+
+<script>
+"use strict";
+
+const $ = (id) => document.getElementById(id);
+
+const EXAMPLES = {
+  "Анкета клиента": "ФИО: Иванов Иван Иванович\nДата рождения: 15.03.1985\nМесто рождения: г. Тула\nПаспорт: 4509 123456, выдан ОУФМС России по г. Москве 20.05.2010, код подразделения 770-123\nАдрес регистрации: г. Москва, ул. Тверская, д. 15, кв. 42\nТелефон: +7 (903) 123-45-67\nEmail: ivanov.ivan@mail.ru\nИНН: 7707083893\nСНИЛС: 123-456-789 01",
+  "Запрос к LLM": "Составь письмо клиентке Ивановой Марии Петровне. Напомни, что её карта 4276 3800 1234 5678 заканчивается на 5678, доставка по адресу г. Казань, ул. Баумана, д. 7. Телефон для связи 8 (903) 555-12-34.",
+  "Диалог с оператором": "Оператор: Назовите, пожалуйста, ваши ФИО.\nКлиент: Петров Сергей Николаевич.\nОператор: Номер карты?\nКлиент: 4276 3800 1234 5678.\nОператор: CVV и PIN?\nКлиент: CVV 123, PIN 4567.",
+  "Ловушки (не ПДн)": "Поэт Александр Сергеевич Пушкин родился в 1799 году.\nОтделение банка на ул. Ленина, д. 10 выдало карту клиенту.\nГорячая линия 8 800 555-35-35.\nКод ошибки 404.\nСобор Василия Блаженного на Красной площади.",
+  "English": "Dear John Smith, your passport number 123456789 and delivery address 15 Tverskaya Street, Moscow. Phone +7 903 123 45 67."
+};
+
+const TILES = [
+  ["RPS средний", "rps_avg"], ["RPS пиковый", "rps_peak"], ["TPS", "tps_avg"],
+  ["p50", "p50"], ["p95", "p95"], ["p99", "p99"],
+  ["Воркеры", "workers"], ["Ошибки", "errors"]
+];
+
+let state = {
+  sessionId: null,
+  entities: [],
+  source: "",
+  llmMode: false
+};
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function setStatus(text, cls) {
+  const el = $("status");
+  el.textContent = text;
+  el.className = "status" + (cls ? " " + cls : "");
+}
+
+function headers(extra) {
+  const h = { "Content-Type": "application/json" };
+  const sys = $("system").value;
+  const key = $("apiKey").value;
+  if (sys) h["X-System-Id"] = sys;
+  if (key) h["X-Api-Key"] = key;
+  if (extra) Object.assign(h, extra);
+  return h;
+}
+
+async function api(url, body, extra) {
+  const t0 = performance.now();
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: headers(extra),
+    body: JSON.stringify(body)
+  });
+  const elapsed = performance.now() - t0;
+  let data = null;
+  try { data = await resp.json(); } catch (e) { /* ignore */ }
+  if (!resp.ok) {
+    const msg = (data && (data.message || data.error)) || ("HTTP " + resp.status);
+    throw new Error("статус " + resp.status + ": " + msg);
+  }
+  return { data, elapsed };
+}
+
+function highlight(text, entities) {
+  const tokens = [...new Set(entities.map((e) => e.token))].sort((a, b) => b.length - a.length);
+  if (!tokens.length) return esc(text);
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    let matched = false;
+    for (const t of tokens) {
+      if (text.startsWith(t, i)) {
+        out += '<span class="token">' + esc(t) + "</span>";
+        i += t.length;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      out += esc(text[i]);
+      i++;
+    }
+  }
+  return out;
+}
+
+function renderEntities(entities) {
+  const tb = $("found");
+  if (!entities.length) {
+    tb.innerHTML = '<tr><td colspan="4">ПДн не найдены</td></tr>';
+    return;
+  }
+  tb.innerHTML = entities.map((e) =>
+    "<tr>" +
+      "<td>" + esc(e.type) + (e.subtype ? '<div class="subtype">' + esc(e.subtype) + "</div>" : "") + "</td>" +
+      '<td class="mono">' + esc(e.token) + "</td>" +
+      '<td class="mono">' + esc(e.source_start) + "–" + esc(e.source_end) + "</td>" +
+      '<td class="mono">' + esc(state.source.slice(e.source_start, e.source_end)) + "</td>" +
+    "</tr>"
+  ).join("");
+}
+
+function renderChips(counts) {
+  $("chips").innerHTML = Object.entries(counts || {})
+    .map(([k, v]) => '<span class="chip">' + esc(k) + ": " + esc(v) + "</span>")
+    .join("");
+}
+
+function renderTiming(text) {
+  $("timing").textContent = text;
+}
+
+function fillAnswer(text) {
+  $("answer").value = text;
+}
+
+async function doMask() {
+  const text = $("input").value;
+  if (!text) { setStatus("Введите текст", "err"); return; }
+  state.source = text;
+  try {
+    const { data, elapsed } = await api("/v1/mask", { text });
+    state.sessionId = data.session_id;
+    state.entities = data.entities;
+    state.llmMode = false;
+    $("out").innerHTML = highlight(data.masked, data.entities);
+    renderChips(data.counts);
+    renderEntities(data.entities);
+    const stages = data.elapsed_ms || 0;
+    renderTiming("Сервер: " + stages.toFixed(1) + " мс. С учётом сети: " + elapsed.toFixed(1) + " мс.");
+    fillAnswer(data.masked);
+    $("btnUnmask").disabled = !data.session_id;
+    if (!data.session_id) {
+      $("restored").textContent = "Для этой системы демаскирование выключено политикой.";
+    } else {
+      $("restored").textContent = "";
+    }
+    setStatus("Найдено значений: " + data.entities.length + ".", "ok");
+  } catch (e) {
+    setStatus(e.message, "err");
+  }
+}
+
+async function doUnmask() {
+  if (!state.sessionId) return;
+  const text = $("answer").value;
+  try {
+    const { data } = await api("/v1/unmask", { text, session_id: state.sessionId });
+    $("restored").textContent = data.text;
+    if (data.text === state.source) {
+      setStatus("Текст восстановлен побайтно.", "ok");
+    } else {
+      setStatus("Ответ восстановлен по токенам.", "ok");
+    }
+  } catch (e) {
+    setStatus(e.message, "err");
+  }
+}
+
+async function doLlm() {
+  const text = $("input").value;
+  if (!text) { setStatus("Введите текст", "err"); return; }
+  state.source = text;
+  try {
+    const { data, elapsed } = await api("/v1/chat/completions", {
+      model: "demo",
+      messages: [{ role: "user", content: text }]
+    }, { "X-Pii-Debug": "1" });
+    const pg = data.pii_guard || {};
+    state.entities = [];
+    state.sessionId = null;
+    state.llmMode = true;
+    const sent = (pg.sent_to_llm || []).map((m) => m.content).join("\n");
+    $("out").innerHTML = highlight(sent, []);
+    renderChips(pg.types || {});
+    renderEntities([]);
+    const raw = data.choices[0].message.content;
+    fillAnswer(raw);
+    $("restored").textContent = raw;
+    $("btnUnmask").disabled = true;
+    const model = data.model || "demo";
+    const restored = pg.restored_tokens || 0;
+    renderTiming("Модель: " + model + ". Круг: " + elapsed.toFixed(1) + " мс. Восстановлено токенов: " + restored + ".");
+    setStatus("Отправлено в LLM: " + (pg.sent_to_llm ? "маска" : "—") + ".", "ok");
+  } catch (e) {
+    setStatus(e.message, "err");
+  }
+}
+
+async function doProcess() {
+  const text = $("input").value;
+  if (!text) { setStatus("Введите текст", "err"); return; }
+  const payloadId = "demo-" + crypto.randomUUID();
+  const logEl = $("processLogBody");
+  const lines = [];
+  try {
+    const t0 = performance.now();
+    const r1 = await fetch("/process", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ payload: text, payload_id: payloadId })
+    });
+    const d1 = await r1.json();
+    const t1 = performance.now() - t0;
+    lines.push("1) " + payloadId + " → " + r1.status + " (" + t1.toFixed(1) + " мс): " + (d1.result || d1.error));
+
+    const t2 = performance.now();
+    const r2 = await fetch("/process", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ payload: d1.result, payload_id: payloadId })
+    });
+    const d2 = await r2.json();
+    const t2e = performance.now() - t2;
+    lines.push("2) " + payloadId + " → " + r2.status + " (" + t2e.toFixed(1) + " мс): " + (d2.result || d2.error));
+
+    const ok = d2.result === text;
+    lines.push("Итог: исходный текст " + (ok ? "восстановлен без потерь" : "отличается") + ".");
+    logEl.textContent = lines.join("\n");
+    $("processLog").open = true;
+    setStatus(ok ? "Контракт /process: текст восстановлен без потерь." : "Контракт /process: текст отличается.", ok ? "ok" : "warn");
+  } catch (e) {
+    lines.push("Ошибка: " + e.message);
+    logEl.textContent = lines.join("\n");
+    $("processLog").open = true;
+    setStatus(e.message, "err");
+  }
+}
+
+function renderTiles(stats) {
+  const lat = stats.latency_ms || {};
+  const values = {
+    rps_avg: stats.rps_avg, rps_peak: stats.rps_peak, tps_avg: stats.tps_avg,
+    p50: lat.p50_le, p95: lat.p95_le, p99: lat.p99_le,
+    workers: stats.workers, errors: stats.errors
+  };
+  $("tiles").innerHTML = TILES.map(([label, key]) => {
+    let v = values[key];
+    if (v === null || v === undefined) v = "—";
+    if (key.startsWith("p")) v = "≤ " + v;
+    return '<div class="tile"><div class="tlabel">' + esc(label) + '</div><div class="tvalue">' + esc(v) + "</div></div>";
+  }).join("");
+}
+
+async function refreshStats() {
+  try {
+    const resp = await fetch("/stats");
+    if (resp.ok) renderTiles(await resp.json());
+  } catch (e) { /* статистика необязательна */ }
+}
+
+function initExamples() {
+  const sel = $("example");
+  for (const name of Object.keys(EXAMPLES)) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  }
+  sel.value = "Анкета клиента";
+  $("input").value = EXAMPLES[sel.value];
+  sel.addEventListener("change", () => { $("input").value = EXAMPLES[sel.value]; });
+}
+
+$("btnMask").addEventListener("click", doMask);
+$("btnUnmask").addEventListener("click", doUnmask);
+$("btnLlm").addEventListener("click", doLlm);
+$("btnProcess").addEventListener("click", doProcess);
+
+initExamples();
+refreshStats();
+setInterval(refreshStats, 2000);
+</script>
+</body>
+</html>

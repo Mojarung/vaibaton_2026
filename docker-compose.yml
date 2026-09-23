@@ -1,0 +1,88 @@
+name: pii-guard
+
+x-api-env: &api-env
+  APP_NAME: ${APP_NAME:-Контур}
+  REDIS_URL: redis://redis:6379/0
+  VAULT_KEY: ${VAULT_KEY:-}
+  ADMIN_KEY: ${ADMIN_KEY:-}
+  KEY_CRM: ${KEY_CRM:-}
+  KEY_SUPPORT: ${KEY_SUPPORT:-}
+  LLM_BASE_URL: ${LLM_BASE_URL:-}
+  LLM_API_KEY: ${LLM_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-deepseek-ai/DeepSeek-V4-Flash-0731}
+  LLM_VERIFY_TLS: ${LLM_VERIFY_TLS:-true}
+  WORKERS: ${WORKERS:-4}
+  MAX_CONCURRENT: ${MAX_CONCURRENT:-256}
+  RUNTIME_MODE: ${RUNTIME_MODE:-mt}
+  BACKPRESSURE: ${BACKPRESSURE:-256}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+services:
+  api:
+    build: .
+    image: kontur-api:latest
+    environment: *api-env
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      - ./config:/app/config
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "${API_CPUS:-4}"
+          memory: 4g
+    logging:
+      driver: json-file
+      options: {max-size: "50m", max-file: "3"}
+
+  redis:
+    image: redis:8.8.3-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "1gb",
+              "--maxmemory-policy", "volatile-ttl", "--io-threads", "2"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1200m
+
+  k6:
+    image: grafana/k6:2.3.0
+    profiles: ["load"]
+    depends_on: [api]
+    volumes:
+      - ./load:/load
+      - ./datasets/golden:/datasets:ro
+    environment:
+      TARGET: ${TARGET:-http://api:8080}
+      RATE: ${RATE:-1000}
+      DURATION: ${DURATION:-60s}
+      RAMP: ${RAMP:-20s}
+      VUS: ${VUS:-200}
+    command: ["run", "--summary-export=/load/results/summary.json", "/load/process.js"]
+
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    profiles: ["observability"]
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:13.2.2
+    profiles: ["observability"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./deploy/grafana:/etc/grafana/provisioning:ro
+    ports: ["3000:3000"]

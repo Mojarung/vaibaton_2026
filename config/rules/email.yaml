@@ -1,0 +1,20 @@
+type: EMAIL
+label_ru: EMAIL
+label_en: EMAIL
+rules:
+  # Локальная часть без «/», «?», «=»: адрес внутри URL («...?email=ivan@mail.ru&lang=ru») не тянет за собой ссылку
+  - id: email
+    requires_any: ["@"]
+    pattern: "(?<![\\p{L}\\d.+\\-_%])(?P<v>[\\p{L}\\d][\\p{L}\\d._%+\\-]{0,63}@[\\p{L}\\d\\-]+(?:\\.[\\p{L}\\d\\-]+)+)"
+    confidence: 0.99
+    priority: 140
+    # Служебные ящики организаций («support@bank.example», «noreply@...») не относятся к человеку
+    negative_context: ["\\x02(?:support|info|noreply|no-reply|help|helpdesk|service|office|contact|press|sales|feedback|robot|mailer-daemon|postmaster|admin|hr|security|abuse)@"]
+    negative_window: 0
+    negative_after: 0
+  # Обфусцированная запись: «petrov.a [at] mail [dot] ru», «ivan (собака) yandex (точка) ru»
+  - id: email_obfuscated
+    requires_regex: "(?i)[\\[(]\\s*(?:at|собака)\\s*[\\])]"
+    pattern: "(?<![\\p{L}\\d.+\\-_%])(?P<v>[\\p{L}\\d][\\p{L}\\d._%+\\-]{0,63}\\s*[\\[(]\\s*(?:at|собака)\\s*[\\])]\\s*[\\p{L}\\d\\-]+(?:\\s*(?:[\\[(]\\s*(?:dot|точка)\\s*[\\])]|\\.)\\s*[\\p{L}\\d\\-]+)+)"
+    confidence: 0.95
+    priority: 139

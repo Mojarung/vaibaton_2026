@@ -1,0 +1,26 @@
+type: DEPARTMENT_CODE
+label_ru: КОД_ПОДРАЗДЕЛЕНИЯ
+label_en: DEPARTMENT_CODE
+rules:
+  - id: dept_ctx
+    min_digits: 6
+    requires_any: ["код", "к/п", "кп", "подраздел", "division"]
+    pattern: "(?:код\\p{L}*\\s+подразделени\\p{L}*|код\\s+подр\\.?|к/п|\\bкп\\b|подразделени\\p{L}*\\s+код\\p{L}*|division\\s+code|subdivision\\s+code){SEP}(?P<v>\\d{3}(?:[ \\t]?[\\-–—][ \\t]?|[ \\t])?\\d{3}){END}"
+    confidence: 0.99
+    priority: 135
+  - id: dept_short_ctx
+    min_digits: 6
+    requires_any: ["код"]
+    pattern: "\\bкод\\p{L}*\\s*[:\\-–]?\\s*(?P<v>\\d{3}[\\-–]\\d{3}){END}"
+    confidence: 0.95
+    priority: 125
+    negative_context: ["ошибк\\p{L}*|error|статус\\p{L}*|ответа|операци\\p{L}*|товар\\p{L}*|купон\\p{L}*|промо\\p{L}*"]
+    negative_window: 20
+  - id: dept_bare
+    min_digits: 6
+    requires_any: ["-"]
+    pattern: "(?<![\\d\\-+./(])(?P<v>\\d{3}-\\d{3})(?![\\d\\-/.)]|\\.\\d)"
+    confidence: 0.7
+    priority: 55
+    negative_context: ["ошибк\\p{L}*|error|статус\\p{L}*|артикул\\p{L}*|модел\\p{L}*|рейс\\p{L}*|версия"]
+    negative_window: 30

@@ -1,0 +1,82 @@
+# Документы, удостоверяющие личность, кроме паспорта РФ (дополнительный критерий 3.7)
+type: FOREIGN_DOCUMENT
+label_ru: ДОКУМЕНТ
+label_en: ID_DOCUMENT
+rules:
+  - id: intl_passport
+    min_digits: 9
+    requires_any: ["загран", "international"]
+    pattern: "(?:загранпаспорт\\p{L}*|заграничн\\p{L}+\\s+паспорт\\p{L}*|загран\\p{L}*|international\\s+passport){LT}[\\s:№#\\-–\"']*(?:сери[яи]\\s*[:№]?\\s*)?(?P<v1>\\d{2})\\s*[,;]?\\s*(?:номер|№|n|no\\.?)?\\s*[:]?\\s*(?P<v2>\\d{7}){END}"
+    confidence: 0.98
+    priority: 137
+  - id: intl_passport_bare
+    min_digits: 9
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{2}\\s\\d{7}){END}"
+    confidence: 0.7
+    priority: 60
+  - id: foreign_passport
+    min_digits: 6
+    requires_any: ["паспорт", "passport"]
+    pattern: "(?:паспорт\\p{L}*\\s+(?:иностранного\\s+гражданина|гражданина\\s+(?!рф|россии)\\p{L}+|(?:республики\\s+)?(?:беларусь|казахстан\\p{L}*|узбекистан\\p{L}*|таджикистан\\p{L}*|киргизии|кыргызстан\\p{L}*|армении|азербайджан\\p{L}*|украин\\p{L}*|молдов\\p{L}*|грузи\\p{L}*|рк|рб|ру|рт|кр))|национальн\\p{L}+\\s+паспорт\\p{L}*|foreign\\s+passport)[\\s:№#\\-–\"']*(?:no\\.?\\s*|number\\s*)?(?P<v>[A-Z\\p{Lu}]{0,3}\\s?\\d{6,9}|(?=[A-Z\\d]*\\d)(?=[A-Z\\d]*[A-Z])[A-Z\\d]{7,10}(?![\\p{L}\\d])){END}"
+    confidence: 0.96
+    priority: 137
+  # Английский текст: «passport 533012874» - девять цифр, не формат паспорта РФ
+  - id: passport_en_9
+    min_digits: 7
+    requires_any: ["passport"]
+    pattern: "\\bpassport\\s*(?:no\\.?|number|#)?\\s*:?\\s*(?P<v>(?-i:[A-Z]{1,2})\\d{7,9}|\\d{9}){END}"
+    confidence: 0.9
+    priority: 120
+  - id: residence_permit
+    min_digits: 5
+    requires_any: ["жительств", "внж", "временное", "рвп", "residence"]
+    pattern: "(?:вид\\p{L}*\\s+на\\s+жительство|\\bвнж\\b|разрешени\\p{L}+\\s+на\\s+временное\\s+проживание|\\bрвп\\b|residence\\s+permit){LT}[\\s:№#\\-–\"']*(?:сери[яи]\\s*[:№]?\\s*)?(?:(?P<v1>\\d{2})\\s*[,;]?\\s*(?:номер|№|n|no\\.?)?\\s*[:]?\\s*(?P<v2>\\d{7})|(?P<v3>\\d{4,9}(?:/\\d{2,4})?)){END}"
+    confidence: 0.97
+    priority: 137
+  - id: birth_certificate
+    min_digits: 6
+    requires_any: ["свидетельств", "certificate"]
+    pattern: "(?:свидетельств\\p{L}+\\s+о\\s+рождении|birth\\s+certificate){LT}[\\s:№#\\-–\"']*(?:сери[яи]\\s*[:№]?\\s*)?(?P<v1>[IVXLCivxlc]{1,5}[\\s\\-]?[\\p{Lu}]{2})\\s*[,;]?\\s*(?:номер|№|n|no\\.?)?\\s*[:]?\\s*(?P<v2>\\d{6}){END}"
+    confidence: 0.97
+    priority: 137
+  # Римская серия свидетельства о рождении отдельно от номера, в любом порядке:
+  # «серия IV-ОМ, номер 001234», «с серией IV-ОМ и номером 001234», «номер 543210, а серия II-КЛ»
+  - id: birth_certificate_series_number
+    min_digits: 6
+    requires_regex: "\\b[IVX]{1,4}\\s?-?\\s?\\p{Lu}{2}\\b"
+    pattern: "\\bсери\\p{L}*\\s*[:\\-]?\\s*(?P<v1>(?-i:[IVX]{1,4})[ \\t]?-?[ \\t]?(?-i:\\p{Lu}{2}))[^\\d\\n]{1,25}?\\bномер\\p{L}*\\s*[:\\-—]?\\s*(?P<v2>\\d{6}){END}|\\bномер\\p{L}*\\s*[:\\-—]?\\s*(?P<v3>\\d{6})(?!\\d)[^\\d\\n]{1,25}?\\bсери\\p{L}*\\s*[:\\-—]?\\s*(?P<v4>(?-i:[IVX]{1,4})[ \\t]?-?[ \\t]?(?-i:\\p{Lu}{2}))(?![\\p{L}])"
+    confidence: 0.95
+    priority: 135
+  # Военный билет: две буквы и семь цифр, «серия МЗ, номер 0045678», «военник АА 1234567»
+  - id: military_id_loose
+    min_digits: 7
+    requires_any: ["военн", "военник", "билет"]
+    pattern: "(?:\\bсери\\p{L}*\\s*[:\\-]?\\s*(?P<v1>(?-i:\\p{Lu}{2}))[^\\d\\n]{1,15}?\\bномер\\p{L}*\\s*[:\\-]?\\s*(?P<v2>\\d{7})|(?<![\\p{L}\\d])(?P<v3>(?-i:\\p{Lu}{2})[ \\t_]?\\d{2}[ \\t_]?\\d{5}|(?-i:\\p{Lu}{2})[ \\t]?\\d{7})){END}"
+    confidence: 0.93
+    priority: 133
+    required_context: ["военн\\p{L}*\\s+билет\\p{L}*|военник\\p{L}*|\\bвб\\b"]
+    required_window: 80
+  - id: birth_certificate_bare
+    min_digits: 6
+    requires_any: ["-"]
+    pattern: "(?<![\\p{L}\\d])(?P<v>[IVX]{1,4}-[А-ЯЁ]{2}\\s?№?\\s?\\d{6}){END}"
+    confidence: 0.9
+    priority: 110
+  - id: military_id
+    min_digits: 7
+    requires_any: ["военн", "вб", "удостоверени"]
+    pattern: "(?:военн\\p{L}+\\s+билет\\p{L}*|\\bвб\\b|удостоверени\\p{L}+\\s+личности\\s+(?:офицера|военнослужащего)){LT}[\\s:№#\\-–\"']*(?:сери[яи]\\s*[:№]?\\s*)?(?P<v1>[\\p{Lu}]{2})\\s*[,;]?\\s*(?:номер|№|n|no\\.?)?\\s*[:]?\\s*(?P<v2>\\d{7}){END}"
+    confidence: 0.97
+    priority: 137
+  - id: id_card
+    min_digits: 7
+    requires_any: ["id", "ид", "удостоверени", "сеймо"]
+    pattern: "(?:id[\\s\\-]?карт\\p{L}*|\\bid[\\s\\-]?card\\b|удостоверени\\p{L}+\\s+личности(?:\\s+гражданина\\s+\\p{L}+|\\s+(?-i:РК|РБ|КР|РУз|РТ))?|ид[\\s\\-]?карт\\p{L}*|сеймо\\p{L}*)(?:\\s*\\([^)\\n]{0,25}\\))?[\\s:№#\\-–\"']*(?:номер|№|n|no\\.?)?\\s*[:]?\\s*(?P<v>[A-Z\\p{Lu}]{0,3}\\s?\\d{7,9}){END}"
+    confidence: 0.95
+    priority: 136
+  - id: seaman_or_service
+    min_digits: 6
+    requires_any: ["моряк", "служебн", "дипломат", "беженц", "временн"]
+    pattern: "(?:паспорт\\p{L}*\\s+моряка|служебн\\p{L}+\\s+паспорт\\p{L}*|дипломатическ\\p{L}+\\s+паспорт\\p{L}*|удостоверени\\p{L}+\\s+беженца|временн\\p{L}+\\s+удостоверени\\p{L}+\\s+личности)[\\s:№#\\-–\"']*(?P<v>[A-Z\\p{Lu}]{0,3}\\s?\\d{2}\\s?\\d{6,7}|(?-i:[A-Z\\p{Lu}]{1,3})\\s?\\d{6,9}){END}"
+    confidence: 0.95
+    priority: 136

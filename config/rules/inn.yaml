@@ -1,0 +1,40 @@
+type: INN
+label_ru: ИНН
+label_en: INN
+rules:
+  - id: inn12_ctx
+    min_digits: 12
+    requires_any: ["инн", "tax", "tin", "идентификац"]
+    pattern: "(?:\\bинн\\b|tax\\s*id|\\btin\\b|идентификационн\\p{L}+\\s+номер\\p{L}*(?:\\s+налогоплательщик\\p{L}*)?){LT}{SEP}(?P<v>\\d{12}){END}"
+    confidence: 0.99
+    priority: 136
+  - id: inn_ctx
+    min_digits: 10
+    requires_any: ["инн", "tax", "tin", "идентификац"]
+    pattern: "(?:\\bинн\\b|tax\\s*id|\\btin\\b|идентификационн\\p{L}+\\s+номер\\p{L}*(?:\\s+налогоплательщик\\p{L}*)?){LT}{SEP}(?P<v>\\d{12}|\\d{10}){END}"
+    confidence: 0.99
+    priority: 135
+    negative_context: ["\\b(?:пао|ооо|ао|зао|оао|нко|банк\\p{L}*|организаци\\p{L}+|компани\\p{L}+|юридическ\\p{L}+)\\b"]
+    negative_window: 80
+  - id: inn12_bare
+    min_digits: 12
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{12}){END}"
+    confidence: 0.9
+    priority: 85
+    validators: [inn]
+  - id: inn10_bare
+    min_digits: 10
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{10}){END}"
+    confidence: 0.7
+    priority: 62
+    validators: [inn]
+    negative_context: ["\\b(?:пао|ооо|ао|зао|оао|нко|банк\\p{L}*|организаци\\p{L}+|компани\\p{L}+|юридическ\\p{L}+)\\b"]
+    negative_window: 80
+  # ИНН группами цифр после метки: «ИНН 5422 0223 9323», «ИНН 74 91 097980 90»
+  - id: inn_grouped_ctx
+    min_digits: 10
+    requires_any: ["инн", "tax", "tin"]
+    pattern: "(?:\\bинн\\b|tax\\s*id|\\btin\\b){LT}{SEP}(?P<v>\\d{2,6}(?:[ \\-./]\\d{2,6}){1,5}){END}"
+    confidence: 0.97
+    priority: 134
+    validators: [inn]

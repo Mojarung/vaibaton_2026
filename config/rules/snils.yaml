@@ -1,0 +1,30 @@
+type: SNILS
+label_ru: СНИЛС
+label_en: SNILS
+rules:
+  - id: snils_ctx
+    min_digits: 11
+    requires_any: ["снилс", "snils", "страхов", "пенсион"]
+    pattern: "(?:снилс|snils|страхов\\p{L}+\\s+номер\\p{L}*|пенсионн\\p{L}+\\s+(?:свидетельств\\p{L}*|страхов\\p{L}+)){LT}{SEP}(?P<v>\\d{3}[\\s\\-]?\\d{3}[\\s\\-]?\\d{3}[\\s\\-]?\\d{2}){END}"
+    confidence: 0.99
+    priority: 135
+  - id: snils_bare
+    min_digits: 11
+    requires_any: ["-"]
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{3}-\\d{3}-\\d{3}[ \\-]?\\d{2}){END}"
+    confidence: 0.95
+    priority: 108
+    validators: [snils]
+  - id: snils_bare_compact
+    min_digits: 11
+    pattern: "(?<![\\d\\-+./])(?P<v>\\d{11}|\\d{3} \\d{3} \\d{3} \\d{2}){END}"
+    confidence: 0.85
+    priority: 90
+    validators: [snils]
+  # «снилс, я продиктовал: 333 444 555 66», «Мой снилс: 123.456.789.01»: пояснение и точки
+  - id: snils_ctx_far
+    min_digits: 11
+    requires_any: ["снилс", "snils"]
+    pattern: "(?:снилс|snils)[^\\d\\n]{1,40}?(?P<v>\\d{3}[ \\t]?[\\-.:]?[ \\t]?\\d{3}[ \\t]?[\\-.:]?[ \\t]?\\d{3}[ \\t]?[\\-.:]?[ \\t]?\\d{2}){END}"
+    confidence: 0.95
+    priority: 130

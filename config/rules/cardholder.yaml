@@ -1,0 +1,15 @@
+type: CARDHOLDER
+label_ru: ДЕРЖАТЕЛЬ_КАРТЫ
+label_en: CARDHOLDER
+rules:
+  - id: cardholder_ctx
+    requires_any: ["держател", "имя", "владел", "cardholder", "card holder", "name on", "эмбосс", "на карте"]
+    pattern: "(?:держател(?:ь|я|ю|ем)(?![\\p{L}])(?:\\s+карты)?|имя\\s+(?:на\\s+карте|держателя(?:\\s+карты)?|владельца(?:\\s+карты)?)|владел\\p{L}+\\s+карты|cardholder(?:\\s+name)?|card\\s*holder|name\\s+on\\s+(?:the\\s+)?card|эмбоссир\\p{L}+\\s+имя|на\\s+карте\\s+(?:указано|написано|имя)){SEP}(?!карт|card)(?P<v>\\p{L}[\\p{L}\\-.]+(?:[ \\t]+\\p{L}[\\p{L}\\-.]+){0,2})"
+    confidence: 0.97
+    priority: 130
+  - id: cardholder_latin_caps
+    requires_regex: "[A-Z]{2,}[ \\t]+[A-Z]{2,}"
+    pattern: "(?<![\\p{L}])(?P<v>(?-i:[A-Z]{2,20}[ \\t]+[A-Z]{2,20}(?:[ \\t]+[A-Z]{2,20})?))(?![\\p{L}])"
+    confidence: 0.8
+    priority: 90
+    gazetteer_check: latin_first_any
